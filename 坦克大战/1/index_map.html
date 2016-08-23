@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>body{background:skyblue;}
+	*{margin:0;padding:0;}
+		#wrap{
+			width:810px;
+			height:510px;
+			background:#222;
+			position: relative;
+			margin:50px auto;
+		}
+		.home{position: absolute;width:60px;height:45px;bottom: 0px;left:375px;}	
+		ul{margin:-300px 0 0 10px;}
+		li{float:left;width:15px;height:15px;overflow: hidden;margin:10px;}
+		li:nth-child(1){background:black;}
+		li:nth-child(2){background:url(img/wall.png);}
+		li:nth-child(3){background:url(img/water.png);}
+		li:nth-child(4){background:url(img/steel.png);}
+		li:nth-child(5){background:url(img/grass.png);}
+		.fl{float:left;width:15px;}
+		#in{position: absolute;top:350px;left:10px;}
+		#in input{width:50px;}
+		#out{display: none;}
+		.pa{position: absolute;}
+	</style>
+	<script type="text/javascript" src='../../js/jquery-1.11.1.js'></script>
+	<script type="text/javascript">
+		$(function(){
+			var oHome = $('<div>');
+			oHome.addClass('home');
+			oHome.appendTo($('#wrap'));
+			var oHomeImg = $('<img>');
+			oHomeImg.attr('src','img/symbol.gif');
+			// oHomeImg.addClass('pa');
+			oHomeImg.css({'width':30+"px",'left':15+'px','top':20+'px','position':'absolute'});
+			oHomeImg.appendTo(oHome);
+			
+			var aBlock=[];
+			for (var i = 0; i < 12; i++) {
+				aBlock[i] = $('<img>');
+				aBlock[i].get(0).src='img/wall.png';
+				aBlock[i].addClass('pa');
+				aBlock[i].attr('name','wall');
+			}
+
+			for (var k = 0; k <3; k++) {
+				for (var j = 0; j < 4; j++) {
+					aBlock[k*4+j].css({'left':j*15+"px",'top':k*15+"px"})
+					aBlock[k*4+j].attr('l',j*15+375);
+					aBlock[k*4+j].attr('t',j*15+765);
+					if(((k==1&&(j==1||j==2))) ||(k==2&&(j==1||j==2)));
+					else {
+						oHome.append(aBlock[k*4+j]);
+					}	
+				}
+			}
+			var current_map='';
+			$('ul').click(function(e){
+				for (var i = 0; i < $('ul').children().size(); i++) {
+					$('ul').children(i).css('border', 'none');
+				}
+				//移除掉地图橡皮擦
+				if(current_map=='img/space.gif'){
+					var obj = $('[name="nomap"]');
+					obj.remove();
+				}
+				switch(e.target.id){
+					case 'l1':$(e.target).css({'border':'1px solid black'}); current_map='img/space.gif';break;
+					case 'l2':$(e.target).css({'border':'1px solid black'}); current_map='img/wall.png';break;
+					case 'l3':$(e.target).css({'border':'1px solid black'}); current_map='img/water.png';break;
+					case 'l4':$(e.target).css({'border':'1px solid black'}); current_map='img/steel.png';break;
+					case 'l5':$(e.target).css({'border':'1px solid black'}); current_map='img/grass.png';break;
+				}
+			})
+			$('#btn').click(function(){
+				var sHeight = $('#text1').val();
+				var sWidth = $('#text2').val();
+				var iHeight = parseInt($('#text1').val());
+				var iWidth = parseInt($('#text2').val());
+				var reg = /^[1-4]$/g;
+				var reg2 =/^[1-4]$/g;
+				if(current_map!=''){
+					if(reg.test(sWidth)&&reg2.test(sHeight)){
+						var oDiv = $('<div>');
+						oDiv.css({'width':iWidth*15+"px",'height':iHeight*15+"px",
+							'position':'absolute','zIndex':5})
+						oDiv.attr('name','map');
+						oDiv.appendTo($('#wrap'));
+						var aMap=[];
+						var maptype='';
+
+						switch(current_map){
+							case 'img/space.gif':maptype = 'space';oDiv.attr('name','nomap'); ;break;
+							case 'img/wall.png':maptype = 'wall';break;
+							case 'img/water.png':maptype = 'water';break;
+							case 'img/grass.png':maptype = 'grass';break;
+							case 'img/steel.png':maptype = 'steel';break;
+						}
+						for (var i = 0; i < iWidth*iHeight; i++) {
+							aMap[i] = $('<img>');
+							aMap[i].addClass('fl');
+							aMap[i].attr('name',maptype);
+							if(maptype!='space'){
+								aMap[i].attr('state','map');
+							}
+							aMap[i].attr('src',current_map);
+							aMap[i].appendTo(oDiv);
+						}
+						var maxWidth = $('#wrap').outerWidth() - oDiv.outerWidth();
+						var maxHeight = $('#wrap').outerHeight() - oDiv.outerHeight();
+						var x ;
+						var y ;
+						oDiv.mousedown(function(e){
+							oDiv.css({'zIndex':10});
+							var disl = e.clientX - oDiv.position().left;
+							var dist = e.clientY - oDiv.position().top;
+							$(document).mousemove(function(e){
+
+								 x = e.clientX - disl;
+								 y = e.clientY -dist;
+								if(x%15<7){
+									x=x-x%15;
+								}
+								else{
+									x=x+(15-x%15);
+								}
+								if(y%15<7){
+									y=y-y%15;
+								}
+								else{
+									y=y+(15-y%15);
+								}
+								if(x<=0){x=0;}
+								if(y<=0){y=0;}
+								if(x>=maxWidth){x=maxWidth;}
+								if(y>=maxHeight){y=maxHeight;}
+								// hitCheck(oDiv,x,y);
+								oDiv.css({'left':x+"px",'top':y+"px"})
+							})
+						})
+						$(document).mouseup(function(){
+							if(oDiv.attr('name')=='map'){
+								var bPut = putmap(oDiv,x,y);
+								if(bPut){
+									oDiv.css({'zIndex':5});
+									$(document).unbind('mousemove');
+									for (var i = 0; i < iWidth*iHeight; i++) {
+										aMap[i].attr('l',aMap[i].position().left+oDiv.position().left);
+										aMap[i].attr('t',aMap[i].position().top+oDiv.position().top);
+										aMap[i].css({'position':'absolute'});
+									}
+									for (var i = 0; i < iHeight; i++) {
+										for (var j = 0; j < iWidth; j++) {
+											aMap[iWidth*i+j].css({'left':j*15+"px",'top':i*15+"px"})
+										}
+									}
+								}
+							}
+							else{
+								delmap(oDiv,x,y);
+								$(document).unbind('mousemove');
+							}
+						})
+					}
+					else{
+						alert('高度和宽度的值应设置为1或4的数字');
+					}
+				}
+				
+				
+			})
+			function delmap(obj,x,y){
+				var aMap = $('[state="map"]');
+				for (var j = 0; j < obj.children().size(); j++) {
+					for (var i = 0; i < aMap.size(); i++) {
+						aMap = $('[state="map"]');			
+						var l1 = parseInt(aMap.eq(i).attr('l')) - obj.width();
+						var l2 = parseInt(aMap.eq(i).attr('l')) + aMap.eq(i).width();
+						var t1 = parseInt(aMap.eq(i).attr('t')) - obj.height();
+						var t2 = parseInt(aMap.eq(i).attr('t')) + aMap.eq(i).height();
+						if(x>l1&&x<l2&&y>t1&&y<t2){
+							aMap.eq(i).remove();
+						}
+					}
+				}
+			}
+			function putmap(obj,x,y){
+				var aDiv = $('[name="map"]')
+				var bPut = true;
+				for (var i = 0; i < aDiv.size(); i++) {
+					aDiv.eq(i).attr('index',i);
+				}
+
+				for (var i = 0; i < aDiv.size(); i++) {
+					if(obj.attr('index')!=aDiv.eq(i).attr('index')){
+						// this.index = i;
+						var l1 = aDiv.eq(i).position().left - obj.width();
+						var l2 = aDiv.eq(i).position().left + aDiv.eq(i).width();
+						var t1 = aDiv.eq(i).position().top - obj.height();
+						var t2 = aDiv.eq(i).position().top + aDiv.eq(i).height();
+						if(x>l1&&x<l2&&y>t1&&y<t2){
+							bPut=false;
+							return bPut;
+						}
+					}
+					
+				}
+				return bPut;
+			}
+			$('#btn2').click(function(){
+				// $('#out').html($('#wrap').html());
+				// alert(typeof($('#wrap').html()));
+				var str = $('#wrap').html();
+				var reg = /</g;
+				var reg2 = />/g;
+				str = str.replace(reg,'&lt');
+				str = str.replace(reg2,'&gt');
+				document.write(str);
+			})
+		})
+	</script>
+</head>
+<body>
+	<div id="wrap">
+		
+	</div>
+	<div id="out"></div>
+	<ul>
+		<li id='l1'></li>
+		<li id='l2'></li>
+		<li id='l3'></li>
+		<li id='l4'></li>
+		<li id='l5'></li>
+			
+	</ul>
+	<div id='in'>
+		<p >请输入高度：1~4之间<input type="text" id='text1'></p>
+		<p>请输入宽度：1~4之间<input type="text" id='text2'></p>
+		<input type="button" name="" id="btn" value='确认'>
+		<input type="button" name="" id="btn2" value='输出'>
+	</div>
+</body>
+</html>

@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta name="viewport" content="width=device-width, user-scalable=no,initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+	<meta charset="UTF-8">
+	<title>Document</title>
+
+	<link rel="stylesheet" href="index.css">
+	<style>
+	
+	</style>
+	
+	<script type="text/javascript">
+		window.onload = function(){
+			var num=0;
+			var oWrap = document.getElementById('wrap');
+			var oStart = document.getElementById('start');
+			var maxh=document.documentElement.clientHeight;
+			// oWrap.style.height=oWrap.offsetWidth*800/480+"px";
+			oWrap.style.height=maxh+"px";
+			var oImg = document.getElementsByTagName('img')[0];
+			var oTitle = document.getElementsByClassName('title')[0];
+			var oPause = document.getElementById('pause');
+			var oStop = document.getElementById('stop');
+			var oTime = document.getElementById('time');
+			var oGrade = document.getElementById('grade');
+			var oOver = document.getElementById('over');
+			var grade=0;
+			var hand_num=0;
+			var timer = null;
+			var bPause = false;
+			var t=30;		//用于倒计时
+			// 存储女神身体的几个关节部位的坐标
+			p1l = oWrap.offsetWidth * 0.45;
+			p1t = oWrap.offsetHeight*0.16;
+			p2l = oWrap.offsetWidth * 0.56;
+			p2t = oWrap.offsetHeight*0.16;
+			p3l = oWrap.offsetWidth * 0.45;
+			p3t = oWrap.offsetHeight*0.26;
+			p4l = oWrap.offsetWidth * 0.56;
+			p4t = oWrap.offsetHeight*0.26;
+			p5l = oWrap.offsetWidth * 0.31;
+			p5t = oWrap.offsetHeight*0.36;
+			p6l = oWrap.offsetWidth * 0.7;
+			p6t = oWrap.offsetHeight*0.36;
+			p7l = oWrap.offsetWidth * 0.52;
+			p7t = oWrap.offsetHeight*0.41;
+			p8l = oWrap.offsetWidth * 0.56;
+			p8t = oWrap.offsetHeight*0.41;
+			p9l = oWrap.offsetWidth * 0.52;
+			p9t = oWrap.offsetHeight*0.82;
+			p10l = oWrap.offsetWidth * 0.56;
+			p10t = oWrap.offsetHeight*0.82;
+
+			
+			oStart.style.display='block';
+			oTitle.style.display='none';
+			oImg.style.display='none';
+
+			oStart.children[1].addEventListener('touchstart',function(){
+				clearInterval(timer);
+				timer =setInterval(nvChange, 100);
+				oTitle.style.display='block';
+				oImg.style.display='block';
+				oStart.style.display='none';
+				function nvChange(){
+					num++;
+					if(num==9){
+						num=1;
+					}
+	                oImg.src='img/'+num+'.png'; 
+				}
+
+				// 倒计时
+				var CountTimer = null;
+				clearInterval(CountTimer);
+				oTime.innerText=t;
+				CountTimer = setInterval(count,1000);
+				
+				function count(){
+					t--;
+					if(t==0){
+						clearInterval(timer);
+						clearInterval(oWrap.handTimer);
+						clearInterval(CountTimer);
+						clearInterval(oWrap.speedTimer);
+						oOver.style.display='block';
+						oTitle.style.display='none';
+						var aHand = document.getElementsByClassName('hand');
+						while(aHand.length!=0 && !aHand[0].isRemove){
+							aHand[0].isRemove = true;
+							oWrap.removeChild(aHand[0]);
+						}
+						oWrap.removeChild(oImg);
+						var rate = parseInt(grade/hand_num*100);
+						var str='';
+						if(rate<=10){
+							str='狠狠的鄙视了我！';
+						}
+						else if(rate<=20){
+							str='怏怏的看了我一眼';
+						}
+						else if(rate<=40){
+							str='的小手拉了我一小下';
+						}
+						else if(rate<=60){
+							str='给我唱了一首《好汉歌》';
+						}
+						else if(rate<=80){
+							str='拥抱了我';
+						}
+						else if(rate<=90){
+							str='强吻了我';
+						}
+						else{
+							str='.....,你懂的';
+						}
+						var oP = document.createElement('p');
+						oP.style.lineHeight='1.3em';
+						oP.style.marginTop = '-20%';
+						oOver.insertBefore(oP, oOver.children[0]);
+						oOver.children[1].innerText = '再玩一次';
+						oP.innerHTML = '我防止女神被骚扰'+grade+'次，打败了'+rate+'%的勇士,女神'+str;
+						oOver.children[1].addEventListener('touchstart', function(){
+							location.reload();
+						}, false)
+						
+					}
+					if(t<10){
+						oTime.innerText = '0'+t;
+					}
+					else{
+						oTime.innerText = t;
+					}
+					
+				}
+
+				//产生咸猪手
+				//控制咸猪手产生的速度
+				oWrap.handfn = createHand;
+				oWrap.speedTimer = null;
+				oWrap.speed = 1000;
+				// oWrap.handfn(oWrap.speed);
+				oWrap.speedTimer = setInterval(function(){
+					// oWrap.handfn=null;
+					oWrap.speed-=10;
+					oWrap.handfn(oWrap.speed);
+				},1000)
+
+				 oWrap.handTimer = null;
+				
+				var prehandPos=0;
+
+				function createHand(stime){
+					clearInterval(oWrap.handTimer);
+					 oWrap.handTimer = setInterval(function(){
+						var oHand = document.createElement('img');
+		                oHand.src = 'img/0.png';
+		                oHand.className='hand';
+		                oHand.isRemove=false;
+		                oHand.move=handMove;
+		                oWrap.appendChild(oHand);
+		                hand_num++;
+		                var x;
+		                var y;
+		                if(Math.random()<0.2&&prehandPos!=1){
+		                	x = -oHand.offsetWidth;
+		                	y = oWrap.offsetHeight/4;
+		                	oHand.speedy=1;
+		                	oHand.speedx = 1;
+		                	prehandPos=1;
+		                }
+		                else if(Math.random()<0.4&&prehandPos!=2){
+		                	x = oWrap.offsetWidth;
+		                	y = oWrap.offsetHeight/4;
+		                	oHand.speedy=1;	                	
+		                	oHand.speedx = -1;
+		                	prehandPos=2;
+		                }
+		                else if(Math.random()<0.6&&prehandPos!=3){              	
+		                	x = oWrap.offsetWidth*.8;
+		                	y=-oHand.offsetHeight;
+		                	oHand.speedx=-1;
+		                	oHand.speedy = 1;
+		                	prehandPos=1;
+		                }
+
+		                else if(Math.random()<0.8&&prehandPos!=4){
+		                	x = -oHand.offsetWidth;
+		                	y = oWrap.offsetHeight*0.8;
+		                	oHand.speedy=-1;
+		                	oHand.speedx = 1;
+		                	prehandPos=4;
+		                }
+		                else if(Math.random()<=1 &&prehandPos!=5){
+		                	x = oWrap.offsetWidth;
+		                	y = oWrap.offsetHeight*0.8;
+		                	oHand.speedy=-1;	                	
+		                	oHand.speedx = -1;
+		                	prehandPos=5;
+		                }
+
+		                oHand.style.left = x+"px";
+						oHand.style.top= y+"px";
+
+						oHand.move(oHand);
+			            oHand.addEventListener('touchstart', function(){
+			            	grade++;
+			            	oGrade.innerHTML='得分:'+grade;
+			            	if(!oHand.isRemove){
+			            		oHand.isRemove = true;
+			            		oWrap.removeChild(oHand);
+			            	}
+			            }, false);
+					}, stime)
+					
+				}
+
+				// 咸猪手移动
+				function handMove(oHand){
+					oHand.moveTimer = setInterval(function(){
+					 	oHand.style.left = oHand.offsetLeft+oHand.speedx+"px";
+						oHand.style.top= oHand.offsetTop+oHand.speedy+"px";
+						if(oHand.offsetLeft>=oWrap.offsetWidth || oHand.offsetLeft+oHand.offsetWidth<=0 ||oHand.offsetTop+oHand.offsetHeight>=oWrap.offsetHeight){
+							if(!oHand.isRemove){
+								oHand.isRemove = true;
+								oWrap.removeChild(oHand);
+							}
+						}
+						check(oHand);
+					 },30)	
+				}
+				oPause.addEventListener('touchstart', function(){
+					if(!bPause){
+						bPause = true;
+						oStop.style.display='block';
+						oTitle.style.display='none';
+						oImg.style.display='none';
+						
+						clearInterval(timer);
+						clearInterval(oWrap.handTimer);
+						clearInterval(CountTimer);
+						clearInterval(oWrap.speedTimer);
+		                var aHand = document.getElementsByClassName('hand');
+		                for (var i = 0; i < aHand.length; i++){
+		                	clearInterval(aHand[i].moveTimer);
+		                	aHand[i].style.display='none';
+		                } 
+		                oStop.children[1].addEventListener('touchstart', function(e){
+		                	// alert(1);
+		                	e.stopPropagation();
+		                	var oEvent = document.createEvent('Events');
+		              		oEvent.initEvent('touchstart',true,true);
+		                	oPause.dispatchEvent(oEvent);
+		                }, false)
+					}
+					else if(bPause){
+						bPause= false;
+						oStop.style.display='none';
+						oTitle.style.display='block';
+						oImg.style.display='block';
+						var aHand = document.getElementsByClassName('hand');
+		                for (var i = 0; i < aHand.length; i++){
+		                	aHand[i].move(aHand[i]);
+		                	aHand[i].style.display='block';	
+		                }
+						timer =setInterval(nvChange, 100);
+						// handTimer = setInterval(createHand, 1000);
+						CountTimer = setInterval(count,1000);
+						oWrap.speedTimer = setInterval(function(){
+							oWrap.speed-=10;
+							oWrap.handfn(oWrap.speed);
+						},1000)
+						
+					}
+				}, false)
+
+				// 咸猪手碰撞检测
+				function check(oHand){
+					var l1 = p1l - oHand.offsetWidth;
+					var l2 = p2l;
+					var t1= p1t-oHand.offsetHeight;
+					var t2 = p3t;
+
+					var x1 = p7l - oHand.offsetWidth;
+					var x2 = p8l;
+					var y1= p7t-oHand.offsetHeight;
+					var y2 = p9t;
+
+					var p1 = p5l;
+					var p2 = p6l;
+					var q1 = p3t;
+					var q2=  p7t;
+
+					var l = oHand.offsetLeft;
+					var t = oHand.offsetTop;
+
+					var ll= l+oHand.offsetWidth/2;
+					var tt =t+oHand.offsetHeight/2;
+
+					if(ll>=l1 &&ll<=l2 && tt>=t1 && tt<=t2 && !oHand.isRemove)
+					{
+						oHand.isRemove = true;
+						oWrap.removeChild(oHand);
+					}
+					else if(ll>=x1 && ll<=x2 && tt>=y1 &&tt<=y2 && !oHand.isRemove){
+						oHand.isRemove = true;
+						oWrap.removeChild(oHand);
+					}
+					else if(ll>=p1&&ll<=p2&&tt>=q1&&tt<=q2&& !oHand.isRemove){
+						oHand.isRemove = true;
+						oWrap.removeChild(oHand);
+					}
+				}
+			
+			}, false)
+		}
+	</script>
+</head>
+<body>
+	<div id="wrap">
+		<div class="title">
+			<span  class='fl'  id='grade'>得分:0</span>
+			<span  id='time' style='margin-left:23%'></span>
+			<span class='fr' id='pause'>暂停</span>
+		</div>
+		<div id='start'>
+			<h4 style='width:80%;margin:0 auto;text-align:center;line-height:1.3em;'>你的女神即将被骚扰，别放过每一个骚扰的手指</h4>
+			<p class='bd1' style='margin-top:10%;'>防骚扰模式开启</p>
+			<p class='bd2'><a href="">更多游戏:游戏中心</a></p>
+		</div>
+		<div id='stop' style='display:none'>
+			<h4 style='width:80%;margin:0 auto;text-align:center;line-height:1.3em;'>游戏暂停</h4 >
+			<p class='bd1' style='margin-top:10%;'>游戏继续</p>
+			<p class='bd2'><a href="">更多游戏:游戏中心</a></p>
+		</div>
+		<div id="over">
+			<p class='bd1' style='margin-top:30%;'></p>
+			<p class='bd2'><a href="">更多游戏:游戏中心</a></p>
+		</div>
+		<img src="img/1.png" alt="" id='nv'>
+	</div>
+	
+</body>
+</html>

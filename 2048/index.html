@@ -1,0 +1,352 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+	<meta name="viewport" content="width=device-width, user-scalable=no,initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+	<meta charset="UTF-8">
+	<title>game</title>
+	<style type="text/css">
+		*{margin:0;padding:0;}
+		#wrap{
+			width:300px;
+			height:300px;
+			border:2px solid #000;
+			background:#eee;
+			position: relative;
+			margin:0 auto;
+		}
+		#wrap #touch{
+			width:100%;height:100%;background: rgba(200,200,200,.2);position: absolute;
+		}
+		#wrap input{
+			width:73px;
+			height:73px;
+			font-size:35px;
+		}
+		div[id^='box']{
+			width:73px;
+			height:73px;
+			float:left;
+			border:1px solid #ccc;
+			font-size:45px;
+			line-height: 70px;
+		}
+		#play{
+			list-style:none;
+			width:150px;
+			height:60px;
+			font-size:30px;
+			font-weight:bold;
+			border:2px solid #87f;
+			
+			margin:40% auto;
+            line-height:60px;
+			background: rgba(255,0,0,.3)
+		}
+	</style>
+	<script type="text/javascript" src="../js/baidu-touch.js"></script>
+	<script type="text/javascript">
+		window.onload = function()
+		{
+			// var btn = document.getElementById('btn');
+			// var btns = btn.getElementsByTagName('li');
+			var wrap = document.getElementById('wrap')
+			var boxs = wrap.getElementsByTagName('div');
+			// var inputs = wrap.getElementsByTagName('input');
+			var grade = document.getElementById('grade');
+			var play = document.getElementById('play');
+			var colors=['#daa520','#adff2f','#808000','#6b8e23',
+						'#778899','#696969','#008b8b','#008000',
+						'#4169e1','#191970','#eee','#ffe'];
+			var grade_num=0;
+			var box_num;		//产生方块的编号
+			var who_to_create;	//产生分值为2还是为4
+			var flag;	    //用于判断游戏结束
+			var bool_move=0;   //判断是否有方块移动，从而是否产生新方块
+			for (var i = 0; i < 16; i++)
+			{
+				boxs[i].index = 0;
+				boxs[i].num=0;
+				boxs[i].color_num = 0; 
+				boxs[i].state = 0;
+			}
+			function create_new_box()
+			{
+			    box_num = parseInt(Math.random()*100%16);	
+			    who_to_create = parseInt(Math.random()*100%10);
+				for (var i = 0,flag=0;	 i <=15; i++) 
+				{
+					if(boxs[i].index==1)
+					{
+						flag++;
+					}
+				}
+				if(boxs[box_num].index == 0 ) 
+				{
+					if(who_to_create<7)		// 产生分值为2的方块
+					{
+						
+						boxs[box_num].style.backgroundColor = colors[0];
+						boxs[box_num].color_num = 0;
+						boxs[box_num].num = 2;
+					}
+					else{
+						
+						boxs[box_num].style.backgroundColor = colors[1];
+						boxs[box_num].color_num = 1;
+						boxs[box_num].num = 4;
+					}
+
+					
+					boxs[box_num].innerText= boxs[box_num].num;
+					boxs[box_num].index=1;	
+				
+					return;
+				}
+				else  	
+				{
+					create_new_box();
+				}
+			}
+			function move_up()
+			{		
+				for (var j = 0; j < 4;j++)
+				{
+					for(var i=4;i<=15;i++)
+					{
+					if(boxs[i].index==1 && boxs[i-4].index == 0)
+						{	
+							
+							boxs[i].innerText = '';
+							boxs[i].style.backgroundColor="#eee";
+							boxs[i-4].color_num =boxs[i].color_num;
+							boxs[i].color_num = 10;	
+							
+							boxs[i-4].style.backgroundColor = colors[boxs[i-4].color_num];
+							boxs[i-4].num=boxs[i].num;
+							
+							boxs[i-4].innerText=boxs[i-4].num;	
+							boxs[i].index = 0;
+							boxs[i-4].index = 1;
+							bool_move++;	
+						}
+						else if(boxs[i].index==1 && boxs[i-4].index == 1&&boxs[i].num==boxs[i-4].num&&boxs[i].state!=1 && boxs[i-4].state!=1) 
+						{
+							
+							boxs[i].innerText='';
+							boxs[i].style.backgroundColor="#eee";
+							boxs[i-4].color_num = boxs[i].color_num+1;
+							boxs[i].color_num =10;		
+						
+							boxs[i-4].style.backgroundColor = colors[boxs[i-4].color_num];
+							boxs[i-4].num = boxs[i].num*2;
+							grade_num=grade_num+boxs[i-4].num ;
+							
+							boxs[i-4].innerText = boxs[i-4].num;
+							boxs[i].index = 0;
+							boxs[i-4].index = 1;
+							boxs[i-4].state = 1;
+							bool_move++;
+						}
+					}				
+				}
+			}
+			function move_left()
+			{
+				for (var k = 0; k <3;k++)
+				{
+					for (var j = 1; j <=3;j++) 
+					{	
+						for (var i= j; i <=15; i+=4) 
+						{
+							if(boxs[i].index==1 
+								&&boxs[i-1].index == 0)
+							{
+								
+								boxs[i].innerText='';
+								boxs[i].style.backgroundColor="#eee";
+								boxs[i-1].color_num=boxs[i].color_num;
+								boxs[i].color_num =10;
+								boxs[i-1].num = boxs[i].num;
+									
+								boxs[i-1].innerText = boxs[i-1].num;
+								boxs[i-1].style.backgroundColor =colors[boxs[i-1].color_num]; 	
+								boxs[i].index = 0;
+								boxs[i-1].index = 1;	
+								bool_move++;
+							}
+							else if(boxs[i].index==1 && boxs[i-1].index == 1&&boxs[i].num==boxs[i-1].num&&boxs[i].state!=1 && boxs[i-1].state != 1)
+							{
+								
+								boxs[i].innerText='';
+								boxs[i].style.backgroundColor="#eee";
+								boxs[i-1].color_num = boxs[i].color_num+1;
+								boxs[i].color_num =10;	
+								
+								boxs[i-1].style.backgroundColor = colors[boxs[i-1].color_num];
+								boxs[i-1].num = boxs[i].num*2;
+								grade_num=grade_num+boxs[i-1].num ;
+								
+								boxs[i-1].innerText = boxs[i-1].num;
+								boxs[i].index = 0;
+								boxs[i-1].index = 1;
+								boxs[i-1].state = 1;
+								bool_move++;
+							}
+						}
+					}
+				}
+			}
+			function move_right()
+			{
+				for (var k = 0; k <3;k++)
+				{
+					for (var j = 2; j>=0;j--) 
+					{	
+						for (var i= j; i <=15; i+=4) 
+						{
+							if(boxs[i].index==1 
+								&&boxs[i+1].index == 0)
+							{
+								boxs[i].innerText = '';
+								boxs[i].style.backgroundColor="#eee";
+								boxs[i+1].color_num = boxs[i].color_num;
+								boxs[i].color_num =10;
+								boxs[i+1].num=boxs[i].num;
+								
+								boxs[i+1].innerText = boxs[i+1].num;
+								boxs[i+1].style.backgroundColor = colors[boxs[i+1].color_num];
+								boxs[i].index = 0;
+								boxs[i+1].index = 1;
+								bool_move++;
+							}
+							if(boxs[i].index==1 &&boxs[i].state!=1 
+								&&boxs[i+1].state != 1
+								&&boxs[i+1].index == 1&&boxs[i].num==boxs[i+1].num)
+							{
+								
+								boxs[i].innerText = '';
+								boxs[i].style.backgroundColor="#eee";
+								boxs[i+1].color_num = boxs[i].color_num+1;
+								boxs[i].color_num =10;
+								
+								boxs[i+1].style.backgroundColor = colors[boxs[i+1].color_num];
+								boxs[i+1].num = boxs[i].num*2;
+								grade_num=grade_num+boxs[i+1].num ;
+								
+								boxs[i+1].innerText = boxs[i+1].num;	
+								boxs[i].index = 0;
+								boxs[i+1].index = 1;
+								boxs[i+1].state = 1;
+								bool_move++;
+							}
+						}
+					}
+				}
+			}
+			function move_down()
+			{
+				for (var j = 0; j < 3;j++)
+				{
+					for(var i=11;i>=0;i--)
+					{
+						if(boxs[i].index==1 &&boxs[i+4].index == 0)
+						{
+						
+							boxs[i].innerText= '';
+							boxs[i].style.backgroundColor="#eee";
+							boxs[i+4].color_num =boxs[i].color_num;
+							boxs[i].color_num =10;
+							boxs[i+4].num=boxs[i].num;
+							
+							boxs[i+4].style.backgroundColor = colors[boxs[i+4].color_num];
+							boxs[i+4].innerText = boxs[i+4].num;
+							boxs[i].index = 0;
+							boxs[i+4].index = 1;
+							bool_move++;		
+						}
+						if(boxs[i].index==1 &&boxs[i].state!=1 &&boxs[i+4].state!= 1&&boxs[i+4].index == 1&&boxs[i].num==boxs[i+4].num)
+						{
+							
+							boxs[i].innerText = '';
+							boxs[i].style.backgroundColor="#eee";
+							boxs[i+4].color_num = boxs[i].color_num+1;
+							boxs[i].color_num =10;
+							
+							boxs[i+4].style.backgroundColor = colors[boxs[i+4].color_num];
+							boxs[i+4].num = boxs[i].num*2;
+							grade_num=grade_num+boxs[i+4].num ;
+							
+							boxs[i+4].innerText = boxs[i+4].num;		
+							boxs[i].index = 0;
+							boxs[i+4].index = 1;
+							boxs[i+4].state = 1;
+							bool_move++;
+						}
+					}
+				}
+			}
+			play.onclick =function()
+			{
+				// console.log('按下开始键')
+				play.style.display="none";
+				// grade.innerHTML
+				create_new_box();
+                touch.on(wrap,'touchstart',function(e){
+                	e.preventDefault();
+                })
+				touch.on(wrap,'dragend',function(e){
+					for (var j = 0; j <16; j++){ 
+						boxs[j].state=0;
+					}
+					if(Math.abs(e.x)<Math.abs(e.y)){	
+						if(e.y>0){
+
+							move_down();
+						}
+						else{
+							move_up();
+						}
+					}
+					else{
+						if(e.x>0){
+							move_right();
+						}
+						else{
+							move_left();
+						}
+					}
+					grade.innerHTML= "分数："+grade_num;
+					if(bool_move!=0)
+					{
+						create_new_box();
+						bool_move = 0;
+					}
+				})
+			}
+		}
+	</script>
+</head>
+<body>
+	<span style="font-size:30px;position:relative;left:40%;" id='grade'>分数:0</span>
+	<div id="wrap" style="text-align:center;line-height:98px">	
+		<ul id='touch'><li id='play'>游戏开始</li></ul>
+		<div id="box1" ></div>
+		<div id="box2" ></div>
+		<div id="box3" ></div>
+		<div id="box4" ></div>
+		<div id="box5" ></div>
+		<div id="box6" ></div>
+		<div id="box7" ></div>
+		<div id="box8" ></div>
+		<div id="box9" ></div>
+		<div id="box10"></div>
+		<div id="box11"></div>
+		<div id="box12"></div>
+		<div id="box13"></div>
+		<div id="box14"></div>
+		<div id="box15"></div>
+		<div id="box16"></div>
+	</div>
+</body>
+</html>

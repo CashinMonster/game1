@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta content="width=320,user-scalable=no,target-densitydpi=device-dpi" name="viewport" id="viewport">
+	<title>Document</title>
+	<style type="text/css">
+*{margin:0;padding:0;}	
+#wrap{background:url(img/bg.jpg);width:343px;height:480px;position: relative;overflow: hidden;z-index: 5;
+		margin:10px auto;border:10px solid #78a;border-radius: 15px;box-shadow: 0px 0px 2px 5px black;}
+#start{width:343px;height:480px;position:relative;z-index:10;background:url(img/bg.jpg);text-align:center;}
+#start #logo1{position: relative;top:10%;left:20px;}
+#start #logo2{position: relative;top:25%;left:50px;transition:all 1s;}
+		
+#start #start_logo{position: relative;top:40%;left:-120px;transition:all 1s;cursor:pointer;}
+#start #logo2:hover{-webkit-transform:rotate(360deg) scale(1.5);}
+#start #start_logo:hover{-webkit-transform:scale(1.5);border:1px solid #ddd;}
+#game_over{position: absolute;top:30%;left:20%;z-index:9;display: none;}
+#medal{background:url(img/message.jpg);width:269px;height:135px;position: absolute;top:45%;left:10%;
+	z-index:9;display: none;}
+#medal #medal_logo{width:54px;position: relative;top:50px;left:30px;}
+#medal #play_again{position: absolute;top:150px;left:80px;} 
+#medal span{position: absolute;top:30px;left:205px;font-size:30px;font-weight:bold;color:orange;
+			text-shadow:2px 2px 1px black;}
+#medal strong{position: absolute;top:80px;left:205px;font-size:30px;font-weight:bold;color:#f80;
+			text-shadow:2px 2px 1px black;}
+#backgnd{width:690px;height:424px;position: relative;}
+#backgnd #page1,#backgnd #page2{width:343px;height:424px;float:left;position: relative;}
+#page1 div,#page2 div{position: absolute;overflow: hidden;}
+#page1 div img,#page2 div img{position: relative;}
+#banner{width:686px;position: absolute;bottom:43px;}
+#banner img{float:left;}
+#bird{position: absolute;top:30%;}
+#grade{font-size:45px;color:#f80;position: absolute;top:50px;left:150px;}
+	</style>
+	<script type="text/javascript">	
+		window.onload = function(){
+			var oWrap = document.getElementById('wrap');
+			var oBackgnd = document.getElementById('backgnd');
+			var oBanner = document.getElementById('banner');
+			var oStart = document.getElementById('start');
+			var oPlay_again = document.getElementById('play_again');
+			var oGame_over = document.getElementById('game_over');
+			var oMedal = document.getElementById('medal');
+			var oStart_logo = document.getElementById('start_logo');
+			var oPage1  = document.getElementById('page1');
+			var oPage2  = document.getElementById('page2');
+			var oP1  = document.getElementById('p1');
+			var oP2  = document.getElementById('p2');
+			var oBird = document.getElementById('bird');
+			var oGrade = document.getElementById('grade');
+			var oBestGrade = document.getElementById('bestGrade');
+			var aAudio = document.getElementsByTagName('audio');
+			var move_timer=null;
+			var create_timer=null;
+			var moveX=0;
+			var channerSpace=0;
+			var channelHigh=[];
+			var create_num=0;
+			var channel_num=0;
+			var channel_num2=-1;
+			var isFirst=true;
+			var iGrade=0
+			oBird.life=false;
+			oBird.type=0;
+			oBird.flystate=0; //0表示平着飞行，1表示上升，2表示下落
+			oBird.who='bird';
+			oStart_logo.onclick = function(){
+				playgame();
+			}
+			oStart_logo.addEventListener('touchstart', playgame, false);
+			oPlay_again.onclick = function(){
+				location.reload();
+			}
+			function playgame()
+			{
+				oStart.style.display="none";
+				clearTimeout(oBird.againTimer);
+				oBird.flyTimer= setTimeout(function(){
+					oBird.life=true;
+					clearTimeout(oBird.flyTimer);
+					clearInterval(oBird.dropTimer);
+					oBird.dropTimer =setInterval(drop,50);
+				}, 2000);
+				clearInterval(move_timer);
+				move_timer = setInterval(function()
+				{				
+					moveX-=1;
+					if((-moveX)%20==0)
+					{
+						if(oBird.type==0)
+						{
+							oBird.type=1;
+						}
+						else{
+							oBird.type=0;
+						}
+					}
+					switch(oBird.flystate)
+					{
+						case 0:oBird.who = 'bird';break;
+						case 1:oBird.who = 'up_bird';break;
+						case 2:oBird.who = 'down_bird';break;
+					}
+					oBird.src="img/"+oBird.who+oBird.type+".png"
+					oBackgnd.style.left = moveX +"px";
+					oBanner.style.left = moveX +"px";
+					if(((-moveX)==80 || (-moveX)==252) && isFirst==false){
+						if(oBird.offsetTop<=channelHigh[channel_num] || oBird.offsetTop+oBird.offsetHeight>=channelHigh[channel_num]+140){
+							clearInterval(oBird.upTimer);
+							aAudio[1].play();
+							die();
+							oBird.todieTimer= setTimeout(function(){
+								oBird.dropTimer =setInterval(drop,50);
+							}, 500)
+						}
+						channel_num++;
+						channel_num2++;
+					}
+					if(((-moveX)==172 || (-moveX)==343) && isFirst==false){
+						iGrade++;
+						aAudio[2].play();
+						oGrade.innerHTML = "";
+						var sGrade = String(iGrade);
+						for (var i = 0; i < sGrade.length; i++) {
+							var oImg = document.createElement('img');
+							oImg.src = 'img/'+sGrade[i]+'.jpg';
+							oGrade.appendChild(oImg);
+						}
+					}
+					if((-moveX)>120 -10 && (-moveX)<172-20 && isFirst==false){
+						document.title=channel_num2;
+						
+						if(oBird.offsetTop<=channelHigh[channel_num2] || oBird.offsetTop+oBird.offsetHeight>=channelHigh[channel_num2]+140){
+							clearInterval(oBird.upTimer);
+							aAudio[1].play();
+							die();
+							oBird.todieTimer= setTimeout(function(){
+								oBird.dropTimer =setInterval(drop,50);
+							}, 500)
+						}
+					}
+					if((-moveX)>292-10 && (-moveX)<343-10 && isFirst==false){
+						if(oBird.offsetTop<=channelHigh[channel_num2] || oBird.offsetTop+oBird.offsetHeight>=channelHigh[channel_num2]+140){
+							clearInterval(move_timer);
+							clearInterval(oBird.upTimer);
+							oBird.life=false;
+							aAudio[1].play();
+							oBird.todieTimer= setTimeout(function(){
+								oBird.dropTimer =setInterval(drop,50);
+							}, 500)
+						}
+					}
+					if((-moveX)==343){
+						oBanner.style.left = 0 +"px";
+						oBackgnd.style.left = 0 +"px";
+						moveX=0;
+						oPage1.innerHTML = oPage2.innerHTML;
+						oPage2.innerHTML="";
+						create(oPage2);
+						create(oPage2);
+						isFirst=false;
+					}	
+				}, 10)
+				create(oPage2);
+				create(oPage2);
+			}
+			if(!localStorage){
+				localStorage.setItem('bestnum',0);
+			}
+			oBird.dropspeed=0;
+			function drop(){
+				oBird.flystate=2;
+				oBird.pos = oBird.offsetTop;
+				oBird.dropspeed+=1;
+				oBird.style.top = oBird.pos + oBird.dropspeed+"px";
+				if(oBird.pos>=400){
+					oBird.style.top = "400px";
+					 oGame_over.style.display="block";
+					 switch(parseInt(iGrade/10)){
+					 	case 0:break;
+					 	case 1:oMedal.children[0].src="img/01.png";break;
+					 	case 2:oMedal.children[0].src="img/02.png";break;
+					 	case 0:oMedal.children[0].src="img/03.png";break;
+					 	default:oMedal.children[0].src="img/04.png";break;
+					 }
+					 var oSpan = document.createElement('span');
+					 oSpan.innerText = iGrade;
+					 oMedal.appendChild(oSpan);
+					 var oStrong = document.createElement('strong');
+					 if(iGrade>= localStorage.getItem('bestnum')){
+					 	 localStorage.setItem('bestnum',iGrade);
+					 }
+					 oStrong.innerHTML = localStorage.getItem('bestnum');
+					 oMedal.appendChild(oStrong);
+					 oGrade.innerHTML="";
+					 oMedal.style.display="block";
+					clearInterval(oBird.dropTimer);	
+				 	var aPage1_child = oPage1.children;
+					var aPage2_child = oPage2.children;
+					 while(aPage1_child.length){
+					 	oPage1.removeChild(aPage1_child[0]);
+					 }
+					 while(aPage2_child.length){
+					 	oPage2.removeChild(aPage2_child[0]);
+					 }
+					die();
+				}
+			}
+			function die(){
+				 clearInterval(move_timer);
+				 aAudio[0].play();
+				 oBird.life = false;			 
+			}
+			function jump(){
+				if(oBird.life){
+					oBird.flystate = 1;
+					oBird.upspeed = 12;
+					aAudio[4].play();
+					var startpos= oBird.offsetTop;	
+					clearInterval(oBird.dropTimer);
+					clearInterval(oBird.upTimer);
+					oBird.upTimer = setInterval(function(){
+						oBird.upspeed-=1;
+						oBird.pos = oBird.offsetTop;
+						if(oBird.upspeed<=0){
+							clearInterval(oBird.upTimer);
+							oBird.dropspeed=0;
+							oBird.dropTimer =setInterval(drop,50);
+						}
+						oBird.style.top = oBird.pos - oBird.upspeed +"px";
+					},40)
+				}
+			}
+			document.onkeydown = function(e){
+				var oEvent = e || window.event;
+				if (oEvent.keyCode ==32) 
+				{
+					jump();
+				}	
+			}
+			oWrap.onclick =jump;
+			// touch事件
+			oWrap.addEventListener('touchstart', jump, false);
+			function create(oPage){	
+				create_num++;		
+				var channel_top = parseInt(Math.random()*180+50);
+				var channel_btm=424-channel_top-140;		
+				var oDiv1 = document.createElement('div');
+				var oImg1 = document.createElement('img');
+				var oDiv2 = document.createElement('div');
+				var oImg2 = document.createElement('img');
+				oDiv1.style.height = channel_top+"px";
+				oDiv2.style.height = channel_btm+"px";
+				oImg1.src="img/Pipe_Top.png";
+				oImg2.src="img/Pipe_Bottom.png"
+				oDiv1.appendChild(oImg1);
+				oImg1.style.top = -(420-channel_top)+"px";
+				oDiv1.style.top = "0px";
+				oPage.appendChild(oDiv1);
+				oDiv2.appendChild(oImg2);
+				oDiv2.style.bottom = "0px";
+				oPage.appendChild(oDiv2);
+				channerSpace += 172;
+				if(create_num%2==1){
+					channerSpace=120;
+				}
+				oDiv1.style.left=channerSpace+"px";
+				oDiv2.style.left=channerSpace+"px";
+				channelHigh.push(channel_top);
+			}	
+		}
+	</script>
+</head>
+<body>
+	<div id="wrap">
+		<div id="start">
+			<img id="logo1" src="img/head.jpg" alt="">
+			<img id="logo2" src="img/1.png" alt="">
+			<img id="start_logo" src="img/start.jpg" alt="">
+		</div>
+		<img  id="game_over" src="img/game_over.jpg" alt="">
+		<div id="medal">
+			<img src="" alt="" id="medal_logo">
+			<img src="img/start.jpg" alt="" id="play_again">
+		</div>
+		<div id="backgnd">
+			<div id="page1"></div>
+			<div id="page2"></div>
+		</div>
+		<div id="banner">
+			<img src="img/banner.jpg" alt="">
+			<img src="img/banner.jpg" alt="">
+		</div>
+		<div id="grade">
+			<img src="img/0.jpg" alt="">
+		</div>
+		<img id="bird" src="img/bird0.png" alt="">	
+	</div>
+	<audio src="audio/Die.wav"></audio>
+	<audio src="audio/Hit.wav"></audio>
+	<audio src="audio/Point.wav"></audio>
+	<audio src="audio/Swooshing.wav"></audio>
+	<audio src="audio/Wing.wav"></audio>
+</body>
+</html>

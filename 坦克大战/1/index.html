@@ -1,0 +1,745 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		*{
+			margin:0;padding:0;
+		}
+		/*img{border:none;}*/
+		#wrap{
+			width:810px;
+			height:510px;
+			background:black;
+			position: relative;
+			margin:50px auto;
+		}
+		.tank{
+			width:30px;
+			position: absolute;
+			/*top:150px;*/
+			/*left:150px;*/
+			border:none;
+		}
+		.pa{position: absolute;width:15px;}
+		.pa1{position: absolute;width:30px;}
+		.bullet{
+			width:5px;
+			height:5px;
+			background:white;
+			position: absolute;
+			z-index:100;
+		}
+		#home{position: absolute;width:60px;height:45px;bottom: 0px;left:375px;}
+			#home{position: absolute;width:60px;height:45px;bottom: 0px;left:375px;}
+			#block1,#block2,#block3{position: absolute;width:150px;height:180px;}
+		#block1{left:180px;top:195px;}
+		#block2{left:330px;top:195px;}
+		#block3{left:480px;top:195px;}
+	
+		.map2{width:90px;height:240px;position: absolute;left:0;top: 30px;}
+		.map3{width:90px;height:240px;position: absolute;right:0;top: 30px;}
+		.map4{width:450px;height:30px;position: absolute;left:180px;top:45px;}
+		.map5{width:450px;height:30px;position: absolute;left:180px;top:120px;}
+		.map6{width:120px;position: absolute;height:150px;left:60px;top:315px;}
+		.map7{width:120px;position: absolute;height:150px;right:60px;top:315px;}
+		.map8{width:180px;height:45px;position: absolute;left:0;top:270px;}
+		.map9{width:180px;height:45px;position: absolute;right:0;top:270px;}
+		.map10{width:60px;position: absolute;height:195px;left:0px;top:315px;}
+		.map11{width:60px;position: absolute;height:195px;right:0px;top:315px;}
+	</style>
+	<script type="text/javascript">
+		window.onload = function(){
+			var timer = null;
+			var enemy_num=0;
+			var maxWidth = 780;
+			var maxHeight = 480;
+			var oWrap = document.getElementById('wrap');
+			var oP1 = document.getElementsByClassName('tank')[0];
+			oP1.isMove = false;
+			oP1.isTurn = false;
+			oP1.direct=3;
+			oP1.predir=3;			//自己坦克前一次的方向，用于消除转向时的默认位移
+			oP1.isRightKey = false;	//判断是否是方向键和发弹建被按下
+			oP1.isHit = true;		//判断自己子弹是否碰撞
+			oP1.bol1=true; //判断自己坦克是否和敌人向上碰撞
+			oP1.bol2=true; //判断自己坦克是否和敌人向下碰撞
+			oP1.bol3=true; //判断自己坦克是否和敌人向左碰撞
+			oP1.bol4=true; //判断自己坦克是否和敌人向右碰撞
+			oP1.life = true;
+			oP1.move = p1_move;
+			oP1.ismove= false;
+			oP1.move();
+			oP1.moTimer = null;
+			var aMap = document.getElementsByName('map');
+			// var aBlock=[];
+			var oHome = document.createElement('img');
+			oHome.src='img/symbol.gif';
+			oHome.className='pa1';
+			oHome.style.left='15px';
+			oHome.style.top='15px'
+			aMap[0].appendChild(oHome);
+			
+			var aBlock=[];
+			for (var i = 0; i < 280+104+12; i++) {
+				aBlock[i] = document.createElement('img');
+				aBlock[i].src='img/wall.png';
+				aBlock[i].className='pa';
+				aBlock[i].name='block';
+			}
+		
+		
+			for (var k = 0; k < 12; k++) {
+				for (var j = 0; j < 10; j++) {
+
+					aBlock[k*10+j].style.left = j*15+"px";
+					aBlock[k*10+j].style.top = k*15+"px";
+					aMap[1].appendChild(aBlock[k*10+j]);
+				}
+			};
+			for (var k = 0; k < 4; k++) {
+				for (var j = 0; j < 10; j++) {
+
+					aBlock[k*10+j+120].style.left = j*15+"px";
+					aBlock[k*10+j+120].style.top = k*15+"px";
+					aMap[12].appendChild(aBlock[k*10+j+120]);
+				}
+			};	
+			for (var k = 0; k < 12; k++) {
+				for (var j = 0; j < 10; j++) {
+
+					aBlock[k*10+j+160].style.left = j*15+"px";
+					aBlock[k*10+j+160].style.top = k*15+"px";
+					aMap[13].appendChild(aBlock[k*10+j+160]);
+				}
+			}
+
+			for (var k = 0; k < 13; k++) {
+				for (var j = 0; j < 4; j++) {
+
+					aBlock[k*4+j+280].style.left = j*15+"px";
+					aBlock[k*4+j+280].style.top = k*15+"px";
+					aMap[10].appendChild(aBlock[k*4+j+280]);
+				}
+			}
+			for (var k = 0; k < 13; k++) {
+				for (var j = 0; j < 4; j++) {
+
+					aBlock[k*4+j+332].style.left = j*15+"px";
+					aBlock[k*4+j+332].style.top = k*15+"px";
+					aMap[11].appendChild(aBlock[k*4+j+332]);
+				}
+			}
+			for (var k = 0; k <3; k++) {
+				for (var j = 0; j < 4; j++) {
+					aBlock[k*4+j+384].style.left = j*15+"px";
+					aBlock[k*4+j+384].style.top = k*15+"px";
+					if(((k==1&&(j==1||j==2))) ||(k==2&&(j==1||j==2)));
+					else {
+						aMap[0].appendChild(aBlock[k*4+j+384]);
+					}	
+				}
+			}
+
+			var aWater =[];
+			for (var i = 0; i < 48+40; i++) {
+				aWater[i] = document.createElement('img');
+				aWater[i].src='img/water.gif';
+				aWater[i].className='pa1';
+				aWater[i].name='water';
+			}
+			for (var k = 0; k < 8; k++) {
+				for (var j = 0; j < 3; j++) {
+
+					aWater[k*3+j].style.left = j*30+"px";
+					aWater[k*3+j].style.top = k*30+"px";
+					aMap[2].appendChild(aWater[k*3+j]);
+				}
+			}
+			for (var k = 0; k < 8; k++) {
+				for (var j = 0; j < 3; j++) {
+
+					aWater[k*3+j+24].style.left = j*30+"px";
+					aWater[k*3+j+24].style.top = k*30+"px";
+					aMap[3].appendChild(aWater[k*3+j+24]);
+				}
+			}
+			for (var k = 0; k < 5; k++) {
+				for (var j = 0; j < 4; j++) {
+
+					aWater[k*4+j+48].style.left = j*30+"px";
+					aWater[k*4+j+48].style.top = k*30+"px";
+					aMap[6].appendChild(aWater[k*4+j+48]);
+				}
+			}
+			for (var k = 0; k < 5; k++) {
+				for (var j = 0; j < 4; j++) {
+
+					aWater[k*4+j+68].style.left = j*30+"px";
+					aWater[k*4+j+68].style.top = k*30+"px";
+					aMap[7].appendChild(aWater[k*4+j+68]);
+				}
+			}
+			var aStone=[];
+			for (var i = 0; i < 120; i++) {
+				aStone[i] = document.createElement('img');
+				aStone[i].src='img/steel.gif';
+				aStone[i].className='pa';
+				aStone[i].name='stone';
+				aStone[i].blood=5;
+			}
+			for (var k = 0; k < 2; k++) {
+				for (var j = 0; j < 30; j++) {
+
+					aStone[k*30+j].style.left = j*15+"px";
+					aStone[k*30+j].style.top = k*15+"px";
+					aMap[4].appendChild(aStone[k*30+j]);
+				}
+			}
+			for (var k = 0; k < 2; k++) {
+				for (var j = 0; j < 30; j++) {
+
+					aStone[k*30+j+60].style.left = j*15+"px";
+					aStone[k*30+j+60].style.top = k*15+"px";
+					aMap[5].appendChild(aStone[k*30+j+60]);
+				}
+			}
+			var aGrass=[];
+			for (var i = 0; i < 72; i++) {
+				aGrass[i] = document.createElement('img');
+				aGrass[i].src='img/grass.gif';
+				aGrass[i].className='pa';
+			}
+			for (var k = 0; k < 3; k++) {
+				for (var j = 0; j <12; j++) {
+
+					aGrass[k*12+j].style.left = j*15+"px";
+					aGrass[k*12+j].style.top = k*15+"px";
+					aMap[8].appendChild(aGrass[k*12+j]);
+				}
+			}
+			for (var k = 0; k < 3; k++) {
+				for (var j = 0; j <12; j++) {
+
+					aGrass[k*12+j+36].style.left = j*15+"px";
+					aGrass[k*12+j+36].style.top = k*15+"px";
+					aMap[9].appendChild(aGrass[k*12+j+36]);
+				}
+			}
+
+			
+
+			function p1_move(){
+				
+				clearInterval(oP1.moTimer);
+				oP1.moTimer = setInterval(function(){
+					if(oP1.ismove){
+						oP1.ismove = false;
+						switch(oP1.direct){
+							case 1:if(oP1.bol1){oP1.style.top= oP1.yy  - 5+"px";}oP1.src="img/p1tankU.gif";break;
+							case 2:if(oP1.bol2){oP1.style.top= oP1.yy  + 5+"px";}oP1.src="img/p1tankD.gif";break;
+							case 3:if(oP1.bol3){oP1.style.left= oP1.xx  - 5+"px";}oP1.src="img/p1tankL.gif";break;
+							case 4:if(oP1.bol4){oP1.style.left= oP1.xx  + 5+"px";}oP1.src="img/p1tankR.gif";break;
+						}
+					}
+					
+				}, 1)
+				
+			}
+			document.onkeydown = function(e){
+				if(e.keyCode==74 ){
+					if(oP1.isHit && oP1.life){
+						oP1.isHit = false;
+						oP1.bullet = document.createElement('div');
+						oP1.bullet.className='bullet';
+						oP1.bullet.style.background='red';
+						oP1.bullet.isremove = false;
+					
+						oWrap.appendChild(oP1.bullet);
+							oP1.bullet.direct = oP1.direct;
+							var butx = oP1.offsetLeft;
+							var buty = oP1.offsetTop;
+							switch(oP1.bullet.direct){
+
+								case 1:oP1.bullet.style.left = butx+12 +"px";
+									oP1.bullet.style.top = buty +"px";break;
+								case 2:oP1.bullet.style.left = butx+12+"px";
+									oP1.bullet.style.top  = buty+30+"px";break;
+								case 3:oP1.bullet.style.left=butx+"px";
+									oP1.bullet.style.top  = buty+12+"px";break;
+								case 4:oP1.bullet.style.left = butx+30+"px";
+									oP1.bullet.style.top = buty+12+"px";break;
+							}
+						oP1.bullet.moveTimer = setInterval(function(){
+							switch(oP1.bullet.direct){
+								case 1:oP1.bullet.style.top = oP1.bullet.offsetTop-10+"px";break;
+								case 2:oP1.bullet.style.top = oP1.bullet.offsetTop+10+"px"; break;
+								case 3:oP1.bullet.style.left = oP1.bullet.offsetLeft-10+"px";break;
+								case 4:oP1.bullet.style.left = oP1.bullet.offsetLeft+10+"px";break;					
+							}
+							hitmap(oP1);
+							killTank(oP1);
+							killTank(oP1.bullet);
+						},20)
+					}
+					
+				}
+			
+				oP1.xx = oP1.offsetLeft;
+				oP1.yy = oP1.offsetTop;
+				if(e.keyCode == 87){oP1.direct = 1; oP1.isRightKey = true;oP1.bol1=true}
+				else if(e.keyCode == 83){oP1.direct = 2;oP1.isRightKey = true;oP1.bol2=true}
+				else if(e.keyCode == 65){oP1.direct = 3;oP1.isRightKey = true;oP1.bol3=true}
+				else if(e.keyCode == 68){oP1.direct = 4;oP1.isRightKey = true;oP1.bol4=true}	
+				else{oP1.isRightKey = false;}
+				if(oP1.predir!= oP1.direct){
+					oP1.predir = oP1.direct;
+					oP1.isTurn = true;
+				}
+				else{
+					oP1.isTurn = false;
+				}
+				if(oP1.xx <=0 && oP1.direct==3){
+					oP1.bMove=false;
+					oP1.xx =0;		
+				}
+				else if(oP1.xx >=maxWidth && oP1.direct ==4){
+					oP1.bMove=false;
+					oP1.xx =maxWidth;			
+				}
+				else if(oP1.yy <=0 && oP1.direct==1){
+					oP1.bMove=false;
+					oP1.yy =0;	
+				}
+				else if(oP1.yy >=maxHeight&&oP1.direct==2){
+					oP1.bMove=false;
+					oP1.yy =maxHeight;					
+				}
+				else{
+					oP1.bMove = true;			
+				}					
+				
+				if(oP1.bMove && !oP1.isTurn &&oP1.isRightKey){
+					oP1.ismove= true;
+				}				
+				tankcrush(oP1);
+				crushmap(oP1);	
+				if(oP1.bMove && !oP1.isTurn &&oP1.isRightKey){
+					oP1.ismove= true;
+				}
+				else{
+					switch(oP1.direct){
+						case 1:oP1.style.top= oP1.yy  +"px";oP1.src="img/p1tankU.gif";break;
+						case 2:oP1.style.top= oP1.yy  +"px";oP1.src="img/p1tankD.gif";break;
+						case 3:oP1.style.left= oP1.xx  +"px";oP1.src="img/p1tankL.gif";break;
+						case 4:oP1.style.left= oP1.xx  +"px";oP1.src="img/p1tankR.gif";break;
+					}
+				}
+				
+			}
+
+			//坦克之间的碰撞
+			function tankcrush(obj){
+				var aTank = document.getElementsByClassName('tank');				
+				for (var i = 0; i < aTank.length; i++) {
+					aTank[i].ind = i;
+					aTank[i].l = aTank[i].offsetLeft;
+					aTank[i].t = aTank[i].offsetTop;
+				
+				}
+				obj.l1 = obj.offsetLeft - obj.offsetWidth;
+				obj.l2 = obj.offsetLeft + obj.offsetWidth;
+				obj.t1 = obj.offsetTop - obj.offsetHeight;
+				obj.t2 = obj.offsetTop + obj.offsetHeight;
+				for (var i = 0; i <aTank.length ; i++) {
+					if(aTank[i].ind != obj.ind){
+						if(aTank[i].l>=obj.l1 && aTank[i].l<=obj.l2 && aTank[i].t>=obj.t1&&
+							aTank[i].t<=obj.t2){	
+							// alert(1);
+							 hitCheck(obj,aTank[i]);	
+						}			
+					}
+				}
+			}
+
+			//坦克与地图的碰撞
+			function crushmap(obj){
+				var aImg = document.getElementsByName('block');
+				for (var i = 0; i < aImg.length; i++) {
+						aImg[i].l1 = aImg[i].offsetLeft - obj.offsetWidth +aImg[i].parentNode.offsetLeft;
+						aImg[i].l2 = aImg[i].offsetLeft + aImg[i].offsetWidth +aImg[i].parentNode.offsetLeft;
+						aImg[i].t1 = aImg[i].offsetTop - obj.offsetHeight+aImg[i].parentNode.offsetTop;
+						aImg[i].t2 = aImg[i].offsetTop + aImg[i].offsetHeight+aImg[i].parentNode.offsetTop;
+					
+					var x = obj.offsetLeft;
+					var y = obj.offsetTop;
+					fncrush(x,y,aImg[i],obj);
+				}
+				var aStone = document.getElementsByName('stone');
+				for (var i = 0; i < aStone.length; i++) {
+						aStone[i].l1 = aStone[i].offsetLeft - obj.offsetWidth +aStone[i].parentNode.offsetLeft;
+						aStone[i].l2 = aStone[i].offsetLeft + aStone[i].offsetWidth +aStone[i].parentNode.offsetLeft;
+						aStone[i].t1 = aStone[i].offsetTop - obj.offsetHeight+aStone[i].parentNode.offsetTop;
+						aStone[i].t2 = aStone[i].offsetTop + aStone[i].offsetHeight+aStone[i].parentNode.offsetTop;
+					
+					var x = obj.offsetLeft;
+					var y = obj.offsetTop;
+					fncrush(x,y,aStone[i],obj);
+				}
+
+				var aWater = document.getElementsByName('water');
+				for (var i = 0; i < aWater.length; i++) {
+						aWater[i].l1 = aWater[i].offsetLeft - obj.offsetWidth +aWater[i].parentNode.offsetLeft;
+						aWater[i].l2 = aWater[i].offsetLeft + aWater[i].offsetWidth +aWater[i].parentNode.offsetLeft;
+						aWater[i].t1 = aWater[i].offsetTop - obj.offsetHeight+aWater[i].parentNode.offsetTop;
+						aWater[i].t2 = aWater[i].offsetTop + aWater[i].offsetHeight+aWater[i].parentNode.offsetTop;
+					
+					var x = obj.offsetLeft;
+					var y = obj.offsetTop;
+					fncrush(x,y,aWater[i],obj);
+				}
+			}
+
+			function fncrush(x,y,omap,obj){
+				if(x>=omap.l1 && x<=omap.l2 && y>=omap.t1 && y<=omap.t2){
+					if(omap.t2 == y && omap.l1 != x && omap.l2 != x){
+						// alert(1);
+						if(obj.direct==1){obj.bol1 = false;}
+						else{obj.bol1 = true;}							
+					}
+					else if(omap.t1 == y  && omap.l1 != x && omap.l2 != x){
+								
+						if(obj.direct==2){obj.bol2 = false; }
+						else{obj.bol2 = true;}
+					}
+					else if(omap.l1 == x  && omap.t1 != y && omap.t2 != y){		
+						if(obj.direct==4){obj.bol4 = false; }
+						else{obj.bol4 = true;}
+					}
+					else if(omap.l2 == x  && omap.t1 !=y && omap.t2 != y){										
+						if(obj.direct==3){obj.bol3 = false; }
+						else{obj.bol3 = true;}	
+					}
+					
+				}
+			}
+
+			function fnhitmap(obj,x,y,objmap){
+				if(x>=objmap.l1 && x<=objmap.l2 && y>=objmap.t1 && y<=objmap.t2){
+					if(!obj.bullet.isremove){
+						obj.bullet.isremove = true;
+						oWrap.removeChild(obj.bullet);
+
+					}
+					if(objmap.name=='stone'  && objmap.blood>1){
+						objmap.blood--;
+					}
+					else{
+						objmap.parentNode.removeChild(objmap);
+					}
+					
+					obj.isHit = true;	
+					obj.isFire = true;		
+					clearInterval(obj.bullet.moveTimer);
+					obj.bullet.isremove = true;	
+				}
+			}
+			//子弹与地图的碰撞
+			function hitmap(obj){
+				var aImg = document.getElementsByName('block');
+				// alert(aImg[0].parentNode.id);
+				for (var i = 0; i < aImg.length; i++) {
+					
+					aImg[i].l1 = aImg[i].offsetLeft - obj.bullet.offsetWidth+aImg[i].parentNode.offsetLeft;
+					aImg[i].l2 = aImg[i].offsetLeft + aImg[i].offsetWidth+aImg[i].parentNode.offsetLeft;
+					aImg[i].t1 = aImg[i].offsetTop - obj.bullet.offsetHeight+aImg[i].parentNode.offsetTop;
+					aImg[i].t2 = aImg[i].offsetTop + aImg[i].offsetHeight+aImg[i].parentNode.offsetTop;
+
+					var x = obj.bullet.offsetLeft;
+					var y = obj.bullet.offsetTop;
+					fnhitmap(obj,x,y,aImg[i]);
+				}
+
+				var aStone = document.getElementsByName('stone');
+				// alert(aImg[0].parentNode.id);
+				for (var i = 0; i < aStone.length; i++) {
+					
+					aStone[i].l1 = aStone[i].offsetLeft - obj.bullet.offsetWidth+aStone[i].parentNode.offsetLeft;
+					aStone[i].l2 = aStone[i].offsetLeft + aStone[i].offsetWidth+aStone[i].parentNode.offsetLeft;
+					aStone[i].t1 = aStone[i].offsetTop - obj.bullet.offsetHeight+aStone[i].parentNode.offsetTop;
+					aStone[i].t2 = aStone[i].offsetTop + aStone[i].offsetHeight+aStone[i].parentNode.offsetTop;
+
+					var x = obj.bullet.offsetLeft;
+					var y = obj.bullet.offsetTop;
+					fnhitmap(obj,x,y,aStone[i]);
+				}
+				if(obj.bullet.offsetTop<=-5 || obj.bullet.offsetTop>=510 ||obj.bullet.offsetLeft<=-5 || obj.bullet.offsetLeft>=810 ){
+					if(!obj.bullet.isremove){
+						obj.bullet.isremove = true;
+						oWrap.removeChild(obj.bullet);
+
+					}
+					obj.isHit = true;	//此属性为自己坦克所需
+					obj.isFire = true;	//此属性为敌方坦克所需		
+					clearInterval(obj.bullet.moveTimer);
+				}
+			}
+
+			//子弹与敌人的碰撞
+			function killTank(obj){
+				
+				if(obj==oP1){
+					// 自己子弹与敌人坦克的碰撞
+					var aTank = document.getElementsByClassName('tank');
+					for (var i = 1; i < aTank.length; i++) {
+						aTank[i].l1 = aTank[i].offsetLeft - obj.bullet.offsetWidth;
+						aTank[i].t1 = aTank[i].offsetTop -obj.bullet.offsetHeight;
+						aTank[i].l2 = aTank[i].offsetLeft + aTank[i].offsetWidth;
+						aTank[i].t2 = aTank[i].offsetTop+aTank[i].offsetHeight;
+						var x = obj.bullet.offsetLeft;
+						var y = obj.bullet.offsetTop;
+						// console.log(x+','+y)
+						if(x>=aTank[i].l1 && x<=aTank[i].l2 &&y>=aTank[i].t1 &&y<=aTank[i].t2){
+							oP1.isHit = true;	//此属性为自己坦克所需
+							oP1.isFire = true;	//此属性为敌方坦克所需		
+							clearInterval(oP1.bullet.moveTimer);
+							aTank[i].life = false;
+							// clearInterval(aTank[i].bullet.moveTimer);
+							oWrap.removeChild(aTank[i]);
+							if(!oP1.bullet.isremove){
+								oP1.bullet.isremove = true;
+								oWrap.removeChild(oP1.bullet);
+							}
+							
+						}
+					}
+				}
+				if(obj==oP1.bullet){
+					// alert(2);
+					// 自己子弹与敌人子弹的碰撞
+					var aTank = document.getElementsByClassName('tank');
+					for (var i = 1; i < aTank.length; i++) {
+						if(!aTank[i].isFire){
+							var l1 = obj.offsetLeft - aTank[i].bullet.offsetWidth;
+							var l2 = obj.offsetLeft + obj.offsetWidth;
+							var t1 = obj.offsetTop - aTank[i].bullet.offsetHeight;
+							var t2 = obj.offsetTop + obj.offsetHeight;
+							var x = aTank[i].bullet.offsetLeft;
+							var y = aTank[i].bullet.offsetTop;
+							if(x>=l1&&x<=l2&&y>=t1&&y<=t2){
+
+								oP1.isHit = true;	//此属性为自己坦克所需
+								aTank[i].isFire = true;	//此属性为敌方坦克所需
+									
+								clearInterval(oP1.bullet.moveTimer);
+								clearInterval(aTank[i].bullet.moveTimer);
+								
+								if(!oP1.bullet.isremove){
+									oP1.bullet.isremove = true;
+									oWrap.removeChild(oP1.bullet);
+								}
+								if(!aTank[i].bullet.isremove){
+									aTank[i].bullet.isremove = true;
+									oWrap.removeChild(aTank[i].bullet);
+								}
+							}
+						}
+					}
+				}
+				
+			}
+
+			document.onkeyup = function(){
+				oP1.isMove = false;
+			}
+		
+			function hitCheck(obj1,obj2){
+				if(obj1.t2==obj2.t && obj1.l1!=obj2.l &&obj1.l2!=obj2.l){					
+					if(obj2.direct==1){obj2.bol1 = false;}
+					else{obj2.bol1 = true;}
+					if(obj1.direct == 2){obj1.bol2 = false;}
+					else{obj1.bol2 = true;}
+				}
+				else if(obj1.t1==obj2.t&& obj1.l1!=obj2.l &&obj1.l2!=obj2.l){
+					
+					if(obj2.direct==2){obj2.bol2 = false;}
+					else{obj2.bol2 = true;}
+					if(obj1.direct == 1){obj1.bol1 = false;}
+					else{obj1.bol1 = true;}	
+				}
+				else if(obj1.l1==obj2.l&& obj1.t2!=obj2.t &&obj1.t1!=obj2.t){
+					
+					if(obj2.direct==4){obj2.bol4 = false;}
+					else{obj2.bol4 = true;}	
+					if(obj1.direct ==3){obj1.bol3 = false;}
+					else{obj1.bol3 = true;}
+				}
+				else if(obj1.l2==obj2.l&& obj1.t2!=obj2.t &&obj1.t1!=obj2.t){
+					
+					if(obj2.direct==3){obj2.bol3 = false;}
+					else{obj2.bol3 = true;}
+					if(obj1.direct == 4){obj1.bol4 = false;}
+					else{obj1.bol4 = true;}	
+				}
+			}
+
+			clearInterval(timer);
+			timer = setInterval(function(){
+				enemy_num++;
+				if(enemy_num>=10){
+					clearInterval(timer);
+				}
+				var oTank = document.createElement('img');
+				oTank.className='tank';
+				if(Math.random()<=.45){
+					oTank.type='enemy1';
+				}
+				else if(Math.random()<=.85){
+					oTank.type='enemy2';
+				}
+				else{
+					oTank.type='enemy3';
+				}
+				oTank.src = 'img/'+oTank.type+'D.gif';
+				if(Math.random()<.33){
+					oTank.style.left = 0+"px";
+				}
+				else if(Math.random()<.66){
+					oTank.style.left='390px';
+				}
+				else {
+					oTank.style.left = '780px';
+				}
+				oWrap.appendChild(oTank);
+				
+				oTank.bMove=true;
+				oTank.bol1=true; //判断坦克是否和敌人向上碰撞
+				oTank.bol2=true; //判断坦克是否和敌人向下碰撞
+				oTank.bol3=true; //判断坦克是否和敌人向左碰撞
+				oTank.bol4=true; //判断坦克是否和敌人向右碰撞
+				oTank.life = true;
+				oTank.moveTimer= setInterval(function(e){
+					var x = oTank.offsetLeft;
+					var y = oTank.offsetTop;
+					tankcrush(oTank);
+					crushmap(oTank);
+					if(x<=0 && oTank.direct==3){
+						oTank.bMove=false;
+						x=0;		
+					}
+					else if(x>=maxWidth && oTank.direct ==4){
+						oTank.bMove=false;
+						x=maxWidth;
+						
+					}
+					else if(y<=0 && oTank.direct==1){
+						oTank.bMove=false;
+						y=0;	
+					}
+					else if(y>=maxHeight&&oTank.direct==2){
+						oTank.bMove=false;
+						y=maxHeight;	
+					}
+					else{
+						oTank.bMove = true;			
+					}
+					
+					
+					if(oTank.bMove){
+						switch(oTank.direct){
+							case 1:if(oTank.bol1){oTank.style.top= y - 15+"px";}oTank.src = 'img/'+oTank.type+'U.gif';break;
+							case 2:if(oTank.bol2){oTank.style.top= y + 15+"px";}oTank.src = 'img/'+oTank.type+'D.gif';break;
+							case 3:if(oTank.bol3){oTank.style.left= x - 15+"px";}oTank.src = 'img/'+oTank.type+'L.gif';break;
+							case 4:if(oTank.bol4){oTank.style.left= x + 15+"px";}oTank.src = 'img/'+oTank.type+'R.gif';break;
+						}
+					}
+					else{
+						switch(oTank.direct){
+							case 1:oTank.style.top= y +"px";oTank.src = 'img/'+oTank.type+'U.gif';break;
+							case 2:oTank.style.top= y +"px";oTank.src = 'img/'+oTank.type+'D.gif';break;
+							case 3:oTank.style.left= x +"px";oTank.src = 'img/'+oTank.type+'L.gif';break;
+							case 4:oTank.style.left= x +"px";oTank.src = 'img/'+oTank.type+'R.gif';break;
+						}
+					}
+				},200)
+
+				oTank.isFire= true;
+				oTank.changedirTimer = setInterval(function(){
+					if(oTank.direct==""){
+						oTank.direct = 2;
+					}
+					else{
+						oTank.direct = parseInt(Math.random()*4+1);
+					}
+					
+					if(oTank.isFire && oTank.life){
+						var timer1= null;
+			
+						clearTimeout(timer1);
+						timer1=setTimeout(function(){
+
+							oTank.isFire = false;
+							oTank.bullet = document.createElement('div');
+							oTank.bullet.className='bullet';
+							oTank.bullet.style.background='green';
+							oTank.bullet.direct=0;
+							oTank.bullet.isHit = false;
+							oTank.bullet.isremove = false;
+							oWrap.appendChild(oTank.bullet);
+							if(oTank.bullet.direct==0){
+								oTank.bullet.direct = oTank.direct;
+								// console.log(oTank.bullet[oTank.bulletenemy_num].direct);
+								var butx = oTank.offsetLeft;
+								var buty = oTank.offsetTop;
+								switch(oTank.bullet.direct){
+
+									case 1:oTank.bullet.style.left = butx+12 +"px";
+										oTank.bullet.style.top = buty +"px";break;
+									case 2:oTank.bullet.style.left = butx+12+"px";
+										oTank.bullet.style.top  = buty+30+"px";break;
+									case 3:oTank.bullet.style.left=butx+"px";
+										oTank.bullet.style.top  = buty+12+"px";break;
+									case 4:oTank.bullet.style.left = butx+30+"px";
+										oTank.bullet.style.top = buty+12+"px";break;
+								}
+
+							}
+							oTank.bullet.moveTimer = setInterval(function(){
+								switch(oTank.bullet.direct){
+									case 1:oTank.bullet.style.top = oTank.bullet.offsetTop-8+"px";break;
+									case 2:oTank.bullet.style.top = oTank.bullet.offsetTop+8+"px"; break;
+									case 3:oTank.bullet.style.left= oTank.bullet.offsetLeft-8+"px";break;
+									case 4:oTank.bullet.style.left= oTank.bullet.offsetLeft+8+"px";break;					
+								}
+								hitmap(oTank);
+							},20)
+						},200)
+					}
+				},1200)
+			}, 5000)
+		}
+	</script>
+</head>
+<body>
+	<div id="wrap">
+		<img src="img/p1tankL.gif" alt="" class='tank' style="bottom:0px;left:345px">
+		<div id="home" name='map'></div>
+		<div class="map1" name='map' id='block1'></div>
+		<div name='map' class="map2" ></div>
+		<div name='map' class="map3"></div>
+		<div name='map' class="map4"></div>
+		<div name='map' class="map5"></div>
+		<div name='map' class="map6"></div>
+		<div name='map' class="map7"></div>
+		<div name='map' class="map8"></div>
+		<div name='map' class="map9"></div>
+		<div name='map' class="map10"></div>
+		<div name='map' class="map11"></div>
+		<div  class="map12" style="height:60px;margin-top:60px" name='map' id='block2'></div>
+		<div class="map13" name='map' id='block3'></div>
+	</div>
+
+
+</body>
+</html>
